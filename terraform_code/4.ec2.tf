@@ -2,13 +2,16 @@ provider "aws" {
   region = "ap-southeast-1"
 }
 
-resource "aws_instance" "my-ins" {
+resource "aws_instance" "my-instance" {
   ami   = "ami-0123c9b6bfb7eb962"
   instance_type = "t2.micro"
   key_name = "projdamo"
   //security_groups =["my-sg"] 
   subnet_id = aws_subnet.my-pub-subnet-01.id
-  
+    for_each = toset(["Jenkins master", "Jenkins slave", "Ansible"])
+   tags = {
+     Name = "${each.key}"
+   }
 }
 
 resource "aws_security_group" "my-sg" {
@@ -23,6 +26,14 @@ ingress {
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
 }
+ingress {
+    description = "Jenkins"
+    from_port        = 8080
+    to_port          = 8080
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+}
+
 
   egress {
     from_port        = 0
